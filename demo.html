@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv=X-UA-Compatible content="IE=edge,chrome=1">
+<title>yt5 demo</title>
+<style>
+#playpause::after {
+	content: "Play";
+}
+#playpause.playing::after {
+	content: "Pause";
+}
+#demo {
+	position: relative;
+}
+#seek {
+	width: 400px;
+}
+
+</style>
+<script src=jquery-2.1.4.min.js></script>
+<script src=yt5.js></script>
+<script src=demo.js></script>
+
+</head>
+<body>
+
+<div id="demo" style="width: 640px; height:480px;"><video></video></div>
+
+<button id="playpause"></button>
+<input id="seek" type="range" min="0" steps="1" value="0">
+<span id="currenttime">0:00</span> / <span id="duration">-:-</span>
+</body>
+</html>
