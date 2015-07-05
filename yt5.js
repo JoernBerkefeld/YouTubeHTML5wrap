@@ -173,10 +173,10 @@ var loadYT5 = function($video, ytID, startSeconds, loop, autoPlay) {
 				}
 				if(data["event"] && data["event"]=="infoDelivery" && data["info"] && data["info"]["currentTime"]) {
 					video._currentTimeAccurate = data["info"]["currentTime"];
-					console.log(video._currentTimeAccurate);
+					// console.log(video._currentTimeAccurate);
 					if(yt5._currentTime!=video.currentTime) {
 						yt5._currentTime = video.currentTime;
-						console.info(yt5._currentTime);
+						// console.info(yt5._currentTime);
 
 						$video.trigger("timeupdate");
 					}
@@ -203,7 +203,7 @@ var loadYT5 = function($video, ytID, startSeconds, loop, autoPlay) {
 				}
 				break;
 			case 1://YTIframe['PlayerState']['PLAYING']: 
-				console.log(video.currentTime);
+				// console.log(video.currentTime);
 				$video.trigger("play");
 				break;
 			case 2://YTIframe['PlayerState']['PAUSED']: 
