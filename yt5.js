@@ -1,40 +1,38 @@
-var loadYT5 = function($video, ytID, startSeconds, loop, autoPlay) {
+var loadYT5 = function($video, ytID, startSeconds, startVolume, autoPlay, loop) {
 	"use strict";
 	// README $video is the jquery container where the YT iframe is placed in. It will act just like a video-element after this code initialized
 
-	var ytIframe,
+	var ytIframePlayer,
 		yt5,
 		floor = Math.floor,
 		ytUri = 'https://www.youtube.com/iframe_api',
-		startVolume = 0.8,
+		ua = window.navigator.userAgent.toLowerCase(),
+		isIOS = ua.indexOf('ipad') != -1 || ua.indexOf('iphone') != -1,
 		video = $video[0];
 
-	loop = loop || false;
+	startVolume = startVolume || 0.8;
 	autoPlay = autoPlay || false;
+	loop = loop || false;
 
 	if(window["yt5"]) {
 		yt5 = window["yt5"];
-		ytIframe = yt5.player;
-
-		video.volume = startVolume;
+		ytIframePlayer = yt5["YT"];
+		video = yt5["video"];
+		video._currentTimeAccurate = null;
+		video["volume"] = startVolume;
 		return;
 	}
 
 
-	if(!startSeconds || inst.isiOS) {
+	if(!startSeconds || isIOS) {
 		startSeconds=0;
 	} else {
 		startSeconds = floor(startSeconds); // in seconds
 	}
 
 	yt5 = {
-		loadingPlayer:true,
-		player:null,
-		interval:null,
+		"YT":null,
 		"video": video,
-		frame:null,
-		id:null,
-		_currentTime:-1,
 
 		"secondsToTime" : function(seconds,forceHours,showMiliSeconds,returnArray) {
 			var mSeconds = "",
@@ -76,22 +74,22 @@ var loadYT5 = function($video, ytID, startSeconds, loop, autoPlay) {
 	//    after the API code downloads.
 	window["onYouTubeIframeAPIReady"] = function() {
 
-		yt5.frame = $('<iframe id="ytplayer" width="100%" height="100%" src="//www.youtube.com/embed/'+ytID+'?controls=0&html5=1&wmode=opaque&rel=0&enablejsapi=1&fs=0&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&loop='+(loop?'0&playlist='+ytID:0)+(startSeconds?'&start='+startSeconds:'')+'&autoplay='+(autoPlay?'1':'0')+'&origin='+location.protocol+'//'+location.host+'" frameborder="0">')
+		$('<iframe id="ytplayer" width="100%" height="100%" src="//www.youtube.com/embed/'+ytID+'?controls=0&html5=1&wmode=opaque&rel=0&enablejsapi=1&fs=0&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&loop='+(loop?'0&playlist='+ytID:0)+(startSeconds?'&start='+startSeconds:'')+'&autoplay='+(autoPlay?'1':'0')+'&origin='+location.protocol+'//'+location.host+'" frameborder="0">')
 		.insertBefore($video.hide());
 
 
 		function checkDurationChange() {
 			if(video.duration > 0) {
+				$video.trigger("loadedmetadata");
 				$video.trigger("durationchange");
 			} else {
 				window.setTimeout(checkDurationChange, 250);
 			}
 		}
 		function onPlayerReady() {//(event) {
-			yt5.id = ytID;
 
 			// https://developers.google.com/youtube/iframe_api_reference
-			yt5["video"] = {
+			video = {
 				// vars
 				"readyState": 3,
 				"videoWidth" : 16, // no way of retrieving that - assume 16:9
@@ -101,10 +99,10 @@ var loadYT5 = function($video, ytID, startSeconds, loop, autoPlay) {
 				_currentTimeAccurate:null,
 				// functions
 				"play": function() {
-					ytIframe["playVideo"]();
+					ytIframePlayer["playVideo"]();
 				},
 				"pause": function() {
-					ytIframe["pauseVideo"]();
+					ytIframePlayer["pauseVideo"]();
 				},
 				"load": function() {
 					// do nothing
@@ -114,49 +112,48 @@ var loadYT5 = function($video, ytID, startSeconds, loop, autoPlay) {
 				},
 				// get only
 				get "duration"(){
-					return ytIframe["getDuration"]();
+					return ytIframePlayer["getDuration"]();
 				},
 				// get & set
 				get "currentTime"(){
 					if(this._currentTimeAccurate) { // grabbed from YT's own postmessages
 						return this._currentTimeAccurate;
 					} else { // fallback
-						return ytIframe["getCurrentTime"]();
+						return ytIframePlayer["getCurrentTime"]();
 					}
 				},
 				set "currentTime"(seconds){
-					ytIframe["seekTo"](floor(seconds),true);
+					ytIframePlayer["seekTo"](floor(seconds),true);
 				},
 				get "src"() {
-					return ytIframe["getVideoUrl"]();
+					// return ytIframePlayer["getVideoUrl"]();
+					return ytIframePlayer["getVideoData"]()["video_id"];
 				},
 				set "src"(ytId) {
-					yt5.id = ytId;
-					ytIframe["loadVideoById"]( yt5.id );
+					ytIframePlayer["loadVideoById"]( ytId );
 					checkDurationChange();
 				},
 				get "muted"() {
-					return ytIframe["isMuted"]();
+					return ytIframePlayer["isMuted"]();
 				},
 				set "muted"(status) {
 					if(status) {
-						ytIframe["mute"]();
+						ytIframePlayer["mute"]();
 					} else {
-						ytIframe["unMute"]();
+						ytIframePlayer["unMute"]();
 					}
 				},
 				get "volume"() {
-					return ytIframe["getVolume"]()/100;
+					return ytIframePlayer["getVolume"]()/100;
 				},
 				set "volume"(volume) {
-					ytIframe["setVolume"](volume*100);
+					ytIframePlayer["setVolume"](volume*100);
 				}
 			};
-			video = yt5["video"];
+			yt5["video"] = video;
 
 			video["volume"] = startVolume;
 
-			yt5.loadingPlayer=false;
 
 			// README YouTube's getCurrenttime will only return seconds:number, not fractions of that. In order to not mess with our interactive overlay too much, we have to check if it actually changed before triggering a timeupdate event
 			window.addEventListener("message", function(event) {
@@ -172,10 +169,9 @@ var loadYT5 = function($video, ytID, startSeconds, loop, autoPlay) {
 					}
 				}
 				if(data["event"] && data["event"]=="infoDelivery" && data["info"] && data["info"]["currentTime"]) {
-					video._currentTimeAccurate = data["info"]["currentTime"];
 					// console.log(video._currentTimeAccurate);
-					if(yt5._currentTime!=video.currentTime) {
-						yt5._currentTime = video.currentTime;
+					if(video._currentTimeAccurate != data["info"]["currentTime"]) {
+						video._currentTimeAccurate = data["info"]["currentTime"];
 						// console.info(yt5._currentTime);
 
 						$video.trigger("timeupdate");
@@ -184,6 +180,7 @@ var loadYT5 = function($video, ytID, startSeconds, loop, autoPlay) {
 			}, false);
 
 			checkDurationChange();
+			$video.trigger("canplay");
 		}
 		function onPlayerPlaybackQualityChange(event) {
 			// cnsl.info("qualichange",event.data);
@@ -241,7 +238,7 @@ var loadYT5 = function($video, ytID, startSeconds, loop, autoPlay) {
 		}
 
 
-		ytIframe = new YT['Player']('ytplayer', {
+		ytIframePlayer = new window["YT"]['Player']('ytplayer', {
 			'events': {
 				'onReady': onPlayerReady,
 				'onPlaybackQualityChange': onPlayerPlaybackQualityChange,
@@ -249,7 +246,7 @@ var loadYT5 = function($video, ytID, startSeconds, loop, autoPlay) {
 				'onError': onPlayerError
 			}
 		});
-		yt5.player = ytIframe;
+		yt5["YT"] = ytIframePlayer;
 
 	};
 
@@ -261,3 +258,4 @@ var loadYT5 = function($video, ytID, startSeconds, loop, autoPlay) {
 	// });
 	return yt5;
 };
+window["loadYT5"] = loadYT5;

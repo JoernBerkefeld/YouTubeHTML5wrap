@@ -5,21 +5,7 @@
 <meta charset="utf-8">
 <meta http-equiv=X-UA-Compatible content="IE=edge,chrome=1">
 <title>yt5 demo</title>
-<style>
-#playpause::after {
-	content: "Play";
-}
-#playpause.playing::after {
-	content: "Pause";
-}
-#demo {
-	position: relative;
-}
-#seek {
-	width: 400px;
-}
-
-</style>
+<link href=demo.css rel=stylesheet>
 <script src=jquery-2.1.4.min.js></script>
 <script src=yt5.js></script>
 <script src=demo.js></script>
@@ -31,6 +17,7 @@
 
 <button id="playpause"></button>
 <input id="seek" type="range" min="0" steps="1" value="0">
-<span id="currenttime">0:00</span> / <span id="duration">-:-</span>
+<div class="time"><span id="currenttime">0:00</span> / <span id="duration">-:-</span></div>
+<label for="volume"><input id="volume" type="range" min="0.00" max="1.00" step="0.01" value="1"/></label>
 </body>
 </html>

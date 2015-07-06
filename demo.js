@@ -1,20 +1,21 @@
 $(function() {
 	"use strict";
-	var $contaienr = $("#demo"),
-		$video =  $contaienr.children("video"),
+	var $container = $("#demo"),
+		$video =  $container.children("video"),
 		playing = false,
 		played = false,
-		duration,
 		$playpause = $("#playpause"),
 		$currentTime = $("#currenttime"),
 		$seek = $("#seek"),
-		currentTime;
+		$volume = $("#volume"),
+		$volumeLabel = $("label[for=volume]"),
+		currentTime,
+		yt5;
 
 
-	var yt5 = loadYT5($video, "2gLq4Ze0Jq4", 0, false, false);
 
 	$video.on("durationchange", function(){
-		duration = yt5.video.duration;
+		var duration = yt5.video.duration;
 		$("#duration").html(yt5.secondsToTime(duration));
 		$seek.attr("max",Math.floor(duration));
 	})
@@ -27,26 +28,36 @@ $(function() {
 		playing = true;
 		$playpause.addClass("playing");
 		if(!played) {
-			// README only needed to use our custom overlay on top of the YT-iframe 
-			// which needs to be hidden for the initial play on mobile devices
+			// README only needed if a custom overlay on top of the YT-iframe is used
+			// this needs to be hidden for the initial play on mobile devices
 			played = true;
-			$contaienr.addClass("played");
+			$container.addClass("played");
 		}
 	})
 	.on("pause", function(){
 		playing = false;
 		$playpause.removeClass("playing");
+	})
+	.on("loadedmetadata", function(){
+		var video = yt5.video;
+		$playpause
+		.add($container).on("click",function() {
+			if(playing) {
+				video.pause();
+			} else {
+				video.play();
+			}
+		});
+		$seek.on("change input",function() {
+			video.currentTime = $seek.val();
+		});
+		$volume.on("change input",function() {
+			video.volume = $volume.val();
+			$volumeLabel.attr("rel",Math.round($(this).val()*100));
+		})
+		.val(video.volume)
+		.trigger("change");
 	});
 
-	$playpause
-	.add($contaienr).on("click",function() {
-		if(playing) {
-			yt5.video.pause();
-		} else {
-			yt5.video.play();
-		}
-	});
-	$seek.on("change input",function() {
-		yt5.video.currentTime = $seek.val();
-	});
+	yt5 = loadYT5($video, "2gLq4Ze0Jq4", 0, false, false);
 });

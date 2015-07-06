@@ -1,0 +1,42 @@
+#playpause {
+	width: 53px;
+	padding: 1px;
+}
+#playpause::after {
+	content: "Play";
+}
+#playpause.playing::after {
+	content: "Pause";
+}
+#demo {
+	position: relative;
+}
+#seek {
+	width: 350px;
+}
+.time {
+	display:inline-block;
+	width:90px;
+}
+label {
+	position:relative;
+	display:inline-block;
+	width: 130px;
+	vertical-align:top;
+}
+label[for="volume"][rel]::after {
+	content:attr(rel)"%";
+	width:30%;
+	height: 27px;
+	line-height: 27px;
+	display:block;
+	position:absolute;
+	top:0;
+	right:0;
+	color:#999;
+}
+#volume {
+	width:70%;
+	height: 27px;
+	margin: auto 0;
+}
