@@ -57,7 +57,8 @@
 
 <button id="playpause"></button>
 <input id="seek" type="range" min="0" steps="1" value="0">
-<span id="currenttime">0:00</span> / <span id="duration">-:-</span>        
+<div class="time"><span id="currenttime">0:00</span> / <span id="duration">-:-</span></div>
+<label for="volume"><input id="volume" type="range" min="0.00" max="1.00" step="0.01" value="1"/></label>
 
 <p>look at demo.js to see how it's used. Basically it will trigger standard HTML5 video events like play, pause, ended, seek on the container you specify. The only difference to an actual video element is that the functions (play(), currentTime and so on) will be available through a special object supplied by the wrapper instead of being directly accessible thru the container.</p>
         </section>
